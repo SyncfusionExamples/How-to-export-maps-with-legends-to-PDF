@@ -1,0 +1,104 @@
+@using Syncfusion.JavaScript
+@using Syncfusion.MVC.EJ
+@using Syncfusion.JavaScript.DataVisualization
+@using Syncfusion.JavaScript.DataVisualization.Models
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<button id="pdf">PDF</button>
+<div id="ControlRegion">
+    @{
+        var datasource = ViewData["datasource"];
+        var _USA_PopulationData = ViewData["mapdata"];
+    }
+    <div style="min-height:400px;position:relative;">
+        @(Html.EJ().Map("container")
+            
+            .Layers(lr =>
+            {
+                lr.EnableSelection(false)
+                .LayerType(LayerType.Geometry)
+                .ShapeDataPath("name")
+                .ShapePropertyPath("name")
+                .ShowMapItems(false)
+                .DataSource(datasource)
+                .EnableMouseHover(true)
+                .LegendSettings(ls =>
+                {
+                    ls.ShowLegend(true)
+                    .Height(15)
+                    .Width(150)
+                    .Position(DockPosition.TopLeft)
+                    .Type(LegendType.Layers)
+                    .Mode(LegendMode.Interactive);
+                 })
+                .ShapeSettings(ss =>
+                {
+                    ss.Fill("#9CBF4E")
+                    .StrokeThickness(0.1)
+                    .Stroke("White")
+                    .HighlightStroke("White")
+                    .HighlightColor("#BC5353")
+                    .HighlightBorderWidth(0.5)
+                    .EnableGradient(true)
+                    .RangeColorMappings(cm =>
+                    {
+                        cm.From(10000001).To(40000000).GradientColors(new List<string> { "#F1ECD8", "#DEE2B9" }).Add();
+                        cm.From(5000001).To(10000000).GradientColors(new List<string> { "#DEE2B9", "#CBD89A" }).Add();
+                        cm.From(1000001).To(5000000).GradientColors(new List<string> { "#CBD89A", "#B8CE7B" }).Add();
+                        cm.From(500000).To(1000000).GradientColors(new List<string> { "#B8CE7B", "#9CBF4E" }).Add();
+                    });
+                })
+                .ShapeData(_USA_PopulationData).Add();
+            })
+        )
+    </div>
+    <canvas id="canvas1" height="600" width="850" style="border:2px solid black;"></canvas>
+
+    <script>
+    $("#pdf").click(function () {
+        var canvas = document.getElementById('canvas1');
+        var ctx = canvas.getContext('2d');
+        var DOMURL = window.URL || window.webkitURL || window;
+        $("#svgDocument").attr("xmlns", "http://www.w3.org/2000/svg");
+        var data = document.getElementById('svgDocument').outerHTML;
+        var img = new Image();
+        var svg = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
+        var url = DOMURL.createObjectURL(svg);
+        img.src = url;
+       
+        img.onload = function () {
+           ctx.drawImage(img, 20, 20, 600, 400);
+            DOMURL.revokeObjectURL(url);
+         }
+        setTimeout(function () {
+            var canvas = document.getElementById('canvas1');
+            var dataUrl = canvas.toDataURL();
+            var mapEle = document.getElementById('container');
+            var canvasEle = mapEle.getElementsByTagName('canvas');
+            var attr, form, input1, data, data2, input2, data3, input3, data4, input4;
+            attr = { action: "ExportChart", method: 'post' };
+            form = ej.buildTag('form', "", null, attr);
+            data = { name: 'Data', type: 'hidden', value: dataUrl };
+            input1 = ej.buildTag('input', "", null, data);
+            form.append(input1).append(this);
+            for (var i = 0; i < canvasEle.length; i++) {
+                var leg1 = canvasEle[i];
+                var dataUrl2 = leg1.toDataURL();
+                var data2 = { name: 'Data'+(i+1), type: 'hidden', value: dataUrl2 };
+                var input2 = ej.buildTag('input', "", null, data2);
+                form.append(input2);
+            }
+            $('body').append(form);
+            form.submit();
+        }, 2000);
+
+        return true;
+    });
+
+    </script>
+    <style type="text/css">
+
+    </style>
+</div>
