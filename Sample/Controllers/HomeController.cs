@@ -28,7 +28,7 @@ namespace mapExport.Controllers
 {
     public class HomeController : Controller
     {
-        [System.Web.Http.ActionName("ExportChart")]
+        [ActionName("ExportChart")]
         [AcceptVerbs("POST")]
         public void ExportChart()
         {

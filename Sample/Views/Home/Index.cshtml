@@ -14,7 +14,6 @@
     }
     <div style="min-height:400px;position:relative;">
         @(Html.EJ().Map("container")
-            
             .Layers(lr =>
             {
                 lr.EnableSelection(false)
@@ -32,7 +31,7 @@
                     .Position(DockPosition.TopLeft)
                     .Type(LegendType.Layers)
                     .Mode(LegendMode.Interactive);
-                 })
+                })
                 .ShapeSettings(ss =>
                 {
                     ss.Fill("#9CBF4E")
@@ -57,48 +56,50 @@
     <canvas id="canvas1" height="600" width="850" style="border:2px solid black;"></canvas>
 
     <script>
-    $("#pdf").click(function () {
-        var canvas = document.getElementById('canvas1');
-        var ctx = canvas.getContext('2d');
-        var DOMURL = window.URL || window.webkitURL || window;
-        $("#svgDocument").attr("xmlns", "http://www.w3.org/2000/svg");
-        var data = document.getElementById('svgDocument').outerHTML;
-        var img = new Image();
-        var svg = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
-        var url = DOMURL.createObjectURL(svg);
-        img.src = url;
-       
-        img.onload = function () {
-           ctx.drawImage(img, 20, 20, 600, 400);
-            DOMURL.revokeObjectURL(url);
-         }
-        setTimeout(function () {
+        $("#pdf").click(function () {
+            var canvas = document.getElementById('canvas1');
+            var ctx = canvas.getContext('2d');
+            var DOMURL = window.URL || window.webkitURL || window;
+            var svgElement = document.getElementById('svgDocument');
+            if (!svgElement) {
+                console.error('SVG document not found!');
+                return;
+            }
+            svgElement.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+            var data = svgElement.outerHTML;
+            var img = new Image();
+            var svg = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
+            var url = DOMURL.createObjectURL(svg);
+            img.src = url;
+
+            img.onload = function () {
+                ctx.drawImage(img, 20, 20, 600, 400);
+                DOMURL.revokeObjectURL(url);
+                submitCanvasData();
+            };
+            setTimeout(function () {
+                submitCanvasData();
+            }, 2000);
+            return true;
+        });
+
+        function submitCanvasData() {
             var canvas = document.getElementById('canvas1');
             var dataUrl = canvas.toDataURL();
+            var attr = { action: "/Home/ExportChart", method: 'post' };
+            var form = ej.buildTag('form', "", null, attr);
+            var input1 = ej.buildTag('input', "", null, { name: 'Data', type: 'hidden', value: dataUrl });
+            form.append(input1);
             var mapEle = document.getElementById('container');
             var canvasEle = mapEle.getElementsByTagName('canvas');
-            var attr, form, input1, data, data2, input2, data3, input3, data4, input4;
-            attr = { action: "ExportChart", method: 'post' };
-            form = ej.buildTag('form', "", null, attr);
-            data = { name: 'Data', type: 'hidden', value: dataUrl };
-            input1 = ej.buildTag('input', "", null, data);
-            form.append(input1).append(this);
             for (var i = 0; i < canvasEle.length; i++) {
                 var leg1 = canvasEle[i];
                 var dataUrl2 = leg1.toDataURL();
-                var data2 = { name: 'Data'+(i+1), type: 'hidden', value: dataUrl2 };
-                var input2 = ej.buildTag('input', "", null, data2);
+                var input2 = ej.buildTag('input', "", null, { name: 'Data' + (i + 1), type: 'hidden', value: dataUrl2 });
                 form.append(input2);
             }
             $('body').append(form);
             form.submit();
-        }, 2000);
-
-        return true;
-    });
-
+        }
     </script>
-    <style type="text/css">
-
-    </style>
 </div>
